@@ -48,20 +48,24 @@
 							$body.unbind('keydown');
 						}
 
-						dialogsCount -= 1;
+						if (!$dialog.hasClass("ngdialog-closing")){
+							dialogsCount -= 1;
+						}
 
 						if (animationEndSupport) {
 							$dialog.unbind(animationEndEvent).bind(animationEndEvent, function () {
 								$dialog.scope().$destroy();
 								$dialog.remove();
-								if (dialogsCount === 0)
+								if (dialogsCount === 0) {
 									$body.removeClass('ngdialog-open');
+								}
 							}).addClass('ngdialog-closing');
 						} else {
 							$dialog.scope().$destroy();
 							$dialog.remove();
-							if (dialogsCount === 0)
+							if (dialogsCount === 0) {
 								$body.removeClass('ngdialog-open');
+							}
 						}
 
 						$rootScope.$broadcast('ngDialog.closed', $dialog);
@@ -131,29 +135,26 @@
 
 							$timeout(function () {
 								$compile($dialog)(scope);
+								$body.addClass('ngdialog-open').append($dialog);
 							});
-
-							$body.addClass('ngdialog-open').append($dialog);
 
 							if (options.closeByEscape) {
 								$body.bind('keydown', privateMethods.onDocumentKeydown);
 							}
 
-							if (options.closeByDocument) {
-								closeByDocumentHandler = function (event) {
-									var isOverlay = $el(event.target).hasClass('ngdialog-overlay');
-									var isCloseBtn = $el(event.target).hasClass('ngdialog-close');
+							closeByDocumentHandler = function (event) {
+								var isOverlay = options.closeByDocument ? $el(event.target).hasClass('ngdialog-overlay') : false;
+								var isCloseBtn = $el(event.target).hasClass('ngdialog-close');
 
-									if (isOverlay || isCloseBtn) {
-										publicMethods.close($dialog.attr('id'));
-									}
-								};
-
-								if (typeof window.Hammer !== 'undefined') {
-									window.Hammer($dialog[0]).on('tap', closeByDocumentHandler);
-								} else {
-									$dialog.bind('click', closeByDocumentHandler);
+								if (isOverlay || isCloseBtn) {
+									publicMethods.close($dialog.attr('id'));
 								}
+							};
+
+							if (typeof window.Hammer !== 'undefined') {
+								window.Hammer($dialog[0]).on('tap', closeByDocumentHandler);
+							} else {
+								$dialog.bind('click', closeByDocumentHandler);
 							}
 
 							dialogsCount += 1;
