@@ -114,8 +114,8 @@
 								template += '<div class="ngdialog-close"></div>';
 							}
 
-							self.$result = $dialog = $el('<div id="ngdialog' + globalID + '" class="ngdialog"></div>');
-							$dialog.html('<div class="ngdialog-overlay"></div><div class="ngdialog-content">' + template + '</div>');
+							self.$result = $dialog = $el('<div id="ngdialog' + globalID + '" class="ngdialog-wrapper"></div>');
+							$dialog.html('<div class="ngdialog-overlay"></div><div class="ngdialog"><div class="ngdialog-content">' + template + '</div></div>');
 
 							if (options.controller && angular.isString(options.controller)) {
 								$dialog.attr('ng-controller', options.controller);
@@ -143,7 +143,7 @@
 							}
 
 							closeByDocumentHandler = function (event) {
-								var isOverlay = options.closeByDocument ? $el(event.target).hasClass('ngdialog-overlay') : false;
+								var isOverlay = options.closeByDocument ? $el(event.target).hasClass('ngdialog') : false;
 								var isCloseBtn = $el(event.target).hasClass('ngdialog-close');
 
 								if (isOverlay || isCloseBtn) {
@@ -194,7 +194,7 @@
 					},
 
 					closeAll: function () {
-						var $all = document.querySelectorAll('.ngdialog');
+						var $all = document.querySelectorAll('.ngdialog-wrapper');
 
 						angular.forEach($all, function (dialog) {
 							privateMethods.closeDialog($el(dialog));
