@@ -32,11 +32,13 @@ app.controller('MainCtrl', function ($scope, ngDialog) {
 
 ngDialog service provides easy to use and minimalistic API, but in the same time it's powerful enough. Here is the list of accessible methods that you can use:
 
+===
+
 ### ``.open(options)``
 
 Method allows to open dialog window, creates new dialog instance on each call. It accepts ``options`` object as the only argument.
 
-##### Options:
+### Options:
 
 ##### ``template {String}``
 
@@ -98,7 +100,7 @@ In addition ``.closeThisDialog()`` method get injected to passed ``$scope``. Thi
 <div class="dialog-contents">
 	<input type="text"/>
 	<input type="button" value="OK" ng-click="checkInput() && closeThisDialog()"/>
-</button>
+</div>
 ```
 
 ##### ``data {String}``
@@ -135,9 +137,69 @@ This will close all open modals if there several of them open at the same time.
 It allows to close modals by clicking on overlay background, default ``true``.
 If [Hammer.js](https://github.com/EightMedia/hammer.js) is loaded, it will listen for ``tap`` instead of ``click``.
 
+### Returns:
+
+The ``open()`` method returns an object with some useful properties.
+
+##### ``id {String}``
+
+This is the ID of the dialog which was just created. It is the ID on the dialog's DOM element.
+
+##### ``close() {Function}``
+
+This is a function which will close the dialog which was opened by the current call to ``open()``.
+
+##### ``closePromise {Promise}``
+
+A promise which will resolve when the dialog is closed. It is resolved with an object containing: ``id`` - the ID of the closed dialog, ``$dialog`` - the dialog element which at this point has been removed from the DOM and ``remainingDialogs`` - the number of dialogs still open.
+
+This allows you do to something like this:
+
+```javascript
+var dialog = ngDialog.open({
+	template: 'templateId'
+});
+
+dialog.closePromise.then(function (data) {
+	console.log(data.id + ' has been dismissed.');
+});
+```
+
+===
+
+### ``.openConfirm(options)``
+
+Opens a dialog that by default does not close when hitting escape or clicking outside the dialog window. The function returns a promise that is either resolved or rejected depending on the way the dialog was closed.
+
+### Options:
+
+The options are the same as the regular open() function, with an extra function added to the scope:
+
+##### ``scope.confirm()``
+
+In addition to the ``.closeThisDialog()`` method. The method ``.confirm()`` is also injected to passed ``$scope``. Use this method to close the dialog and ``resolve`` the promise that was returned when opening the modal.
+
+The function accepts a single optional parameter which is used as the value of the resolved promise.
+
+```html
+<div class="dialog-contents">
+	Some message
+	<button ng-click="closeThisDialog()">Cancel</button>
+	<button ng-click="confirm()">Confirm</button>
+</div>
+```
+
+### Returns:
+
+An Angular promise object that is resolved if the ``.confirm()`` function is used to close the dialog, otherwise the promise is rejected.
+
+===
+
 ### ``.close(id)``
 
 Method accepts dialog's ``id`` as string argument to close specific dialog window, if ``id`` is not specified it will close all currently active modals (same behavior as ``.closeAll()``).
+
+===
 
 ### ``.closeAll()``
 

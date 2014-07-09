@@ -24,7 +24,7 @@
 			closeByEscape: true
 		};
 
-		var globalID = 0, dialogsCount = 0, closeByDocumentHandler;
+		var globalID = 0, dialogsCount = 0, closeByDocumentHandler, defers = {};
 
 		this.$get = ['$document', '$templateCache', '$compile', '$q', '$http', '$rootScope', '$timeout',
 			function ($document, $templateCache, $compile, $q, $http, $rootScope, $timeout) {
@@ -38,6 +38,7 @@
 					},
 
 					closeDialog: function ($dialog) {
+						var id = $dialog.attr('id');
 						if (typeof window.Hammer !== 'undefined') {
 							window.Hammer($dialog[0]).off('tap', closeByDocumentHandler);
 						} else {
@@ -67,7 +68,14 @@
 								$body.removeClass('ngdialog-open');
 							}
 						}
-
+						if (defers[id]) {
+							defers[id].resolve({
+								id: id,
+								$dialog: $dialog,
+								remainingDialogs: dialogsCount
+							});
+							delete defers[id];
+						}
 						$rootScope.$broadcast('ngDialog.closed', $dialog);
 					}
 				};
@@ -97,6 +105,9 @@
 						globalID += 1;
 
 						self.latestID = 'ngdialog' + globalID;
+
+						var defer;
+						defers[self.latestID] = defer = $q.defer();
 
 						var scope = angular.isObject(options.scope) ? options.scope.$new() : $rootScope.$new();
 						var $dialog;
@@ -164,6 +175,14 @@
 							return publicMethods;
 						});
 
+						return {
+							id: 'ngdialog' + globalID,
+							closePromise: defer.promise,
+							close: function() {
+								privateMethods.closeDialog($dialog);
+							}
+						};
+
 						function loadTemplate (tmpl) {
 							if (!tmpl) {
 								return 'Empty template';
@@ -175,6 +194,42 @@
 
 							return $templateCache.get(tmpl) || $http.get(tmpl, { cache: true });
 						}
+					},
+
+					/*
+					 * @param {Object} options:
+					 * - template {String} - id of ng-template, url for partial, plain string (if enabled)
+					 * - plain {Boolean} - enable plain string templates, default false
+					 * - scope {Object}
+					 * - controller {String}
+					 * - className {String} - dialog theme class
+					 * - showClose {Boolean} - show close button, default true
+					 * - closeByEscape {Boolean} - default false
+					 * - closeByDocument {Boolean} - default false
+					 *
+					 * @return {Object} dialog
+					 */
+					openConfirm: function (opts) {
+						var defer = $q.defer();
+
+						var options = {
+							closeByEscape: false,
+							closeByDocument: false
+						};
+						angular.extend(options, opts);
+
+						options.scope = angular.isObject(options.scope) ? options.scope.$new() : $rootScope.$new();
+						options.scope.confirm = function (value) {
+							defer.resolve(value);
+							openResult.close();
+						};
+
+						var openResult = publicMethods.open(options);
+						openResult.closePromise.then(function () {
+							defer.reject();
+						});
+
+						return defer.promise;
 					},
 
 					/*
