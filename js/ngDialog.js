@@ -26,15 +26,48 @@
 
 		var globalID = 0, dialogsCount = 0, closeByDocumentHandler, defers = {};
 
-		this.$get = ['$document', '$templateCache', '$compile', '$q', '$http', '$rootScope', '$timeout',
-			function ($document, $templateCache, $compile, $q, $http, $rootScope, $timeout) {
+		this.$get = ['$document', '$templateCache', '$compile', '$q', '$http', '$rootScope', '$timeout', '$window',
+			function ($document, $templateCache, $compile, $q, $http, $rootScope, $timeout, $window) {
 				var $body = $document.find('body');
+				var systemScrollbarWidth;
 
 				var privateMethods = {
 					onDocumentKeydown: function (event) {
 						if (event.keyCode === 27) {
 							publicMethods.close();
 						}
+					},
+
+					setBodyPadding: function () {
+						var originalBodyPadding = parseInt(($body.css('padding-right') || 0), 10)
+						if (systemScrollbarWidth || (systemScrollbarWidth = privateMethods.measureScrollbar())) {
+							$body.css('padding-right', (originalBodyPadding + systemScrollbarWidth) + 'px');
+							$body.data('ng-dialog-original-padding', originalBodyPadding);
+						}
+					},
+
+					resetBodyPadding: function () {
+						var originalBodyPadding = $body.data('ng-dialog-original-padding');
+						if (originalBodyPadding) {
+							$body.css('padding-right', originalBodyPadding + 'px');
+						} else {
+							$body.css('padding-right', '');
+						}
+					},
+
+					measureScrollbar: function () { 
+						var scrollDiv = $el('<div></div>');
+						scrollDiv.css('position', 'absolute');
+						scrollDiv.css('top', '-9999px');
+						scrollDiv.css('width', '50px');
+						scrollDiv.css('height', '50px');
+						scrollDiv.css('overflow', 'scroll');
+						$body.append(scrollDiv);
+
+						var scrollDivElem = scrollDiv[0];
+						var systemScrollbarWidth = scrollDivElem.offsetWidth - scrollDivElem.clientWidth;
+						scrollDiv.remove();
+						return systemScrollbarWidth;
 					},
 
 					closeDialog: function ($dialog) {
@@ -59,6 +92,7 @@
 								$dialog.remove();
 								if (dialogsCount === 0) {
 									$body.removeClass('ngdialog-open');
+									privateMethods.resetBodyPadding();
 								}
 							}).addClass('ngdialog-closing');
 						} else {
@@ -66,6 +100,7 @@
 							$dialog.remove();
 							if (dialogsCount === 0) {
 								$body.removeClass('ngdialog-open');
+								privateMethods.resetBodyPadding();
 							}
 						}
 						if (defers[id]) {
@@ -146,7 +181,12 @@
 
 							$timeout(function () {
 								$compile($dialog)(scope);
-								$body.addClass('ngdialog-open').append($dialog);
+								var widthDiffs = $window.innerWidth - $body.prop('clientWidth');
+								$body.addClass('ngdialog-open');
+								if (widthDiffs != ($window.innerWidth - $body.prop('clientWidth'))) {
+									privateMethods.setBodyPadding();
+								}
+								$body.append($dialog);
 							});
 
 							if (options.closeByEscape) {
