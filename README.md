@@ -205,6 +205,20 @@ Method accepts dialog's ``id`` as string argument to close specific dialog windo
 
 Method manages closing all active modals on the page.
 
+===
+
+### ``.setForceBodyReload({Boolean})``
+
+Adds additional listener on every ``$locationChangeSuccess`` event and gets update version of ``body`` into dialog. Maybe useful in some rare cases when you're dependant on DOM changes, defaults to ``false``. Use it in module's config as provider instance:
+
+```javascript
+var app = angular.module('exampleApp', ['ngDialog']);
+
+app.config(function (ngDialogProvider) {
+	ngDialogProvider.setForceBodyReload(true);
+});
+```
+
 ## Directive
 
 By default ngDialog module is served with ``ngDialog`` directive which can be used as attribute for buttons, links, etc. Almost all ``.open()`` options are available through tag attributes as well, the only difference is that ``ng-template`` id or path of template file is required.
