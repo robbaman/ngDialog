@@ -23,7 +23,8 @@
 			showClose: true,
 			closeByDocument: true,
 			closeByEscape: true,
-			appendTo: false
+			appendTo: false,
+			hideOtherDialogs: false
 		};
 
 		this.setForceBodyReload = function (_useIt) {
@@ -67,7 +68,55 @@
 						}
 					},
 
+					hideOtherDialogs: function ($dialog) {
+						var $all = document.querySelectorAll('.ngdialog-wrapper');
+						var id = $dialog.attr('id');
+						var hiddenDialogs = [];
+
+						angular.forEach($all, function (dialog) {
+							var $d = $el(dialog);
+							if ($d.attr('id') != id && !$d.data('ngDialogPreventHide')) {
+								privateMethods.hideDialog($d);
+								hiddenDialogs.push($d);
+							}
+						});
+
+						$dialog.data('ngDialogToShowOnClose', hiddenDialogs);
+					},
+
+					hideDialog: function ($dialog) {
+						var id = $dialog.attr('id');
+						$dialog.data('ngDialogPreventHide', true)
+
+						if (animationEndSupport) {
+							$dialog.unbind(animationEndEvent).bind(animationEndEvent, function (event) {
+								$dialog.css('display', 'none');
+							}).addClass('ngdialog-closing');
+						} else {
+							$dialog.css('display', 'none');
+						}
+					},
+
+					showRelatedHiddenDialogs: function ($dialog) {
+						var hiddenDialogs = $dialog.data('ngDialogToShowOnClose');
+						if (angular.isArray(hiddenDialogs)) {
+							angular.forEach(hiddenDialogs, function (hiddenDialog) {
+								var $hiddenDialog = $el(hiddenDialog);
+								privateMethods.showHiddenDialog($hiddenDialog);
+							});
+						}
+					},
+
+					showHiddenDialog: function ($dialog) {
+						$dialog.data('ngDialogPreventHide', false)
+						$dialog.unbind(animationEndEvent).css('display', 'block').removeClass('ngdialog-closing');
+					},
+
+
 					closeDialog: function ($dialog, value) {
+						var wasAlreadyHidden = $dialog.data('ngDialogPreventHide') === true;
+						$dialog.data('ngDialogPreventHide', true)
+
 						var id = $dialog.attr('id');
 						if (typeof window.Hammer !== 'undefined') {
 							window.Hammer($dialog[0]).off('tap', closeByDocumentHandler);
@@ -83,7 +132,9 @@
 							dialogsCount -= 1;
 						}
 
-						if (animationEndSupport) {
+						privateMethods.showRelatedHiddenDialogs($dialog);
+
+						if (animationEndSupport && !wasAlreadyHidden) {
 							$dialog.unbind(animationEndEvent).bind(animationEndEvent, function () {
 								$dialog.scope().$destroy();
 								$dialog.remove();
@@ -180,7 +231,7 @@
 							}
 
 							if (options.appendTo && angular.isString(options.appendTo)) {
-								$dialogParent = angular.element(document.querySelector(options.appendTo));
+								$dialogParent = $el(document.querySelector(options.appendTo));
 							} else {
 								$dialogParent = $body;
 							}
@@ -199,6 +250,10 @@
 									privateMethods.setBodyPadding(scrollBarWidth);
 								}
 								$dialogParent.append($dialog);
+
+								if (options.hideOtherDialogs) {
+									privateMethods.hideOtherDialogs($dialog);
+								}
 
 								$rootScope.$broadcast('ngDialog.opened', $dialog);
 							});
@@ -307,7 +362,9 @@
 						var $all = document.querySelectorAll('.ngdialog-wrapper');
 
 						angular.forEach($all, function (dialog) {
-							privateMethods.closeDialog($el(dialog), value);
+							var $dialog = $el(dialog);
+							$dialog.removeData('ngDialogToShowOnClose');
+							privateMethods.closeDialog($dialog, value);
 						});
 					}
 				};
