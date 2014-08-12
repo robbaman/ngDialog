@@ -214,11 +214,10 @@
 							$dialog.html('<div class="ngdialog-overlay"></div><div class="ngdialog"><div class="ngdialog-content">' + template + '</div></div>');
 
 							if (options.controller && (angular.isString(options.controller) || angular.isArray(options.controller) || angular.isFunction(options.controller))) {
-								var locals = {
+								var controllerInstance = $controller(options.controller, {
 									$scope: scope,
 									$element: $dialog
-								}
-								var controllerInstance = $controller(options.controller, locals);
+								});
 								$dialog.data('$ngDialogControllerController', controllerInstance);
 							}
 
@@ -227,7 +226,10 @@
 							}
 
 							if (options.data && angular.isString(options.data)) {
-								scope.ngDialogData = options.data.replace(/^\s*/, '')[0] === '{' ? angular.fromJson(options.data) : options.data;
+								var firstLetter = options.data.replace(/^\s*/, '')[0];
+								scope.ngDialogData = (firstLetter === '{' || firstLetter === '[') ? angular.fromJson(options.data) : options.data;
+							} else if (options.data && angular.isObject(options.data)) {
+								scope.ngDialogData = angular.fromJson(angular.toJson(options.data));
 							}
 
 							if (options.appendTo && angular.isString(options.appendTo)) {
@@ -333,10 +335,10 @@
 
 						var openResult = publicMethods.open(options);
 						openResult.closePromise.then(function (data) {
-							if (data)
-								defer.reject(data.value);
-							else
-								defer.reject();
+							if (data) {
+								return defer.reject(data.value);
+							}
+							return defer.reject();
 						});
 
 						return defer.promise;

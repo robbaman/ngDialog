@@ -8,16 +8,6 @@
   }
 }
 
-@-moz-keyframes ngdialog-fadeout {
-  0% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
 @keyframes ngdialog-fadeout {
   0% {
     opacity: 1;
@@ -38,16 +28,6 @@
   }
 }
 
-@-moz-keyframes ngdialog-fadein {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
 @keyframes ngdialog-fadein {
   0% {
     opacity: 0;
@@ -58,10 +38,10 @@
   }
 }
 
-.ngdialog-wrapper *,
-.ngdialog-wrapper *:before,
-.ngdialog-wrapper *:after {
-  -webkit-box-sizing: border-box;
+.ngdialog,
+.ngdialog *,
+.ngdialog *:before,
+.ngdialog *:after {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
@@ -84,21 +64,14 @@
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 10000;
   -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
   -webkit-animation: ngdialog-fadein 0.5s;
-  -moz-animation: ngdialog-fadein 0.5s;
-  -o-animation: ngdialog-fadein 0.5s;
   animation: ngdialog-fadein 0.5s;
 }
 
-.ngdialog-wrapper.ngdialog-closing .ngdialog-overlay {
+.ngdialog.ngdialog-closing .ngdialog-overlay {
   -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
   -webkit-animation: ngdialog-fadeout 0.5s;
-  -moz-animation: ngdialog-fadeout 0.5s;
-  -o-animation: ngdialog-fadeout 0.5s;
   animation: ngdialog-fadeout 0.5s;
 }
 
@@ -109,12 +82,9 @@
   animation: ngdialog-fadein 0.5s;
 }
 
-.ngdialog-wrapper.ngdialog-closing .ngdialog {
+.ngdialog.ngdialog-closing .ngdialog-content {
   -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
   -webkit-animation: ngdialog-fadeout 0.5s;
-  -moz-animation: ngdialog-fadeout 0.5s;
-  -o-animation: ngdialog-fadeout 0.5s;
   animation: ngdialog-fadeout 0.5s;
 }
 
