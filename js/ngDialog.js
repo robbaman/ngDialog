@@ -212,6 +212,13 @@
 
 							self.$result = $dialog = $el('<div id="ngdialog' + globalID + '" class="ngdialog-wrapper"></div>');
 							$dialog.html('<div class="ngdialog-overlay"></div><div class="ngdialog"><div class="ngdialog-content">' + template + '</div></div>');
+							
+							if (options.data && angular.isString(options.data)) {
+								var firstLetter = options.data.replace(/^\s*/, '')[0];
+								scope.ngDialogData = (firstLetter === '{' || firstLetter === '[') ? angular.fromJson(options.data) : options.data;
+							} else if (options.data && angular.isObject(options.data)) {
+								scope.ngDialogData = angular.fromJson(angular.toJson(options.data));
+							}
 
 							if (options.controller && (angular.isString(options.controller) || angular.isArray(options.controller) || angular.isFunction(options.controller))) {
 								var controllerInstance = $controller(options.controller, {
@@ -223,13 +230,6 @@
 
 							if (options.className) {
 								$dialog.addClass(options.className);
-							}
-
-							if (options.data && angular.isString(options.data)) {
-								var firstLetter = options.data.replace(/^\s*/, '')[0];
-								scope.ngDialogData = (firstLetter === '{' || firstLetter === '[') ? angular.fromJson(options.data) : options.data;
-							} else if (options.data && angular.isObject(options.data)) {
-								scope.ngDialogData = angular.fromJson(angular.toJson(options.data));
 							}
 
 							if (options.appendTo && angular.isString(options.appendTo)) {
@@ -258,6 +258,12 @@
 								}
 
 								$rootScope.$broadcast('ngDialog.opened', $dialog);
+								if (options.name) {
+								    $rootScope.$broadcast('ngDialog.opened',
+                                        				{ dialog: $dialog, name: options.name });
+								} else {
+								    $rootScope.$broadcast('ngDialog.opened', $dialog);
+								}
 							});
 
 							if (options.closeByEscape) {

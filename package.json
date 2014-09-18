@@ -1,6 +1,6 @@
 {
   "name": "ng-dialog",
-  "version": "0.2.11",
+  "version": "0.2.14",
   "homepage": "https://github.com/likeastore/ngDialog",
   "description": "Modal dialogs and popups provider for Angular.js applications",
   "main": "./js/ngDialog.js",
@@ -34,9 +34,7 @@
     "grunt-contrib-uglify": "~0.2.7",
     "grunt-myth": "^0.3.1",
     "myth": "^1.1.1",
-    "network-address": "0.0.4"
-  },
-  "dependencies": {
+    "network-address": "0.0.4",
     "strata": "~0.20.1"
   }
 }
